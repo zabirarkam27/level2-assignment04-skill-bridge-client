@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Menu } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
-import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Accordion } from "@/components/ui/accordion";
 import {
   Sheet,
   SheetContent,
@@ -14,198 +14,166 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import Link from "next/link";
-import { ModeToggle } from "./ModeToggle";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from "../ui/navigation-menu";
+} from "@/components/ui/navigation-menu";
+import { ModeToggle } from "./ModeToggle";
 
 interface MenuItem {
   title: string;
   url: string;
-  description?: string;
-  icon?: React.ReactNode;
-  items?: MenuItem[];
 }
 
-interface Navbar1Props {
+interface NavbarProps {
   className?: string;
-  logo?: {
-    url: string;
-    src: string;
-    alt: string;
-    title: string;
-    className?: string;
-  };
-  menu?: MenuItem[];
-  auth?: {
-    login: {
-      title: string;
-      url: string;
-    };
-    signup: {
-      title: string;
-      url: string;
-    };
-  };
 }
 
-const Navbar = ({
-  logo = {
-    url: "https://www.shadcnblocks.com",
-    src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg",
-    alt: "logo",
-    title: "Shadcnblocks.com",
-  },
-  menu = [
+export function Navbar({ className }: NavbarProps) {
+  const menu: MenuItem[] = [
     { title: "Home", url: "/" },
-    {
-      title: "Courses",
-      url: "/courses",
-    },
-    {
-      title: "Mentors",
-      url: "/mentors",
-    },
-    {
-      title: "Testimonials",
-      url: "/testimonials",
-    },
-    {
-      title: "Contact Us",
-      url: "/contact",
-    },
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-    },
-  ],
-  auth = {
-    login: { title: "Sign In", url: "/login" },
-    signup: { title: "Sign up", url: "/sign-up" },
-  },
-  className,
-}: Navbar1Props) => {
+    { title: "Courses", url: "/courses" },
+    { title: "Mentors", url: "/mentors" },
+    { title: "Testimonials", url: "/testimonials" },
+    { title: "Contact Us", url: "/contact" },
+    { title: "Dashboard", url: "/dashboard" },
+  ];
+
   return (
-    <section className={cn("py-4", className)}>
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur",
+        className,
+      )}
+    >
       <div className="container mx-auto px-4">
-        {/* Desktop Menu */}
-        <nav className="hidden items-center justify-between lg:flex">
-          <div className="flex items-center gap-6">
+        {/* Desktop */}
+        <nav className="hidden h-16 items-center justify-between lg:flex">
+          <div className="flex items-center gap-8">
             {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <Image
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
+                src="/logo.png"
+                alt="SkillBridge Logo"
                 width={32}
                 height={32}
+                className="dark:invert"
               />
-              <span className="text-lg font-semibold tracking-tighter">
-                {logo.title}
+              <span className="relative rounded-md px-3 py-1 text-lg font-semibold tracking-tighter bg-linear-to-r from-[#7b2a85] via-[#611f69] to-[#4a174f] dark:from-[#d8b4fe] dark:via-[#c084fc] dark:to-[#a855f7] bg-size-[200%_200%] bg-left bg-clip-text text-transparent transition-all duration-500 hover:bg-right hover:bg-clip-padding hover:text-white dark:hover:text-black">
+                SkillBridge
               </span>
-            </a>
-            <div className="flex items-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {menu.map((item) => renderMenuItem(item))}
-                </NavigationMenuList>
-              </NavigationMenu>
-            </div>
+            </Link>
+
+            {/* Menu */}
+            <NavigationMenu>
+              <NavigationMenuList>
+                {menu.map((item) => (
+                  <NavigationMenuItem key={item.title}>
+                    <NavigationMenuLink
+                      asChild
+                      className="inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors duration-300 hover:text-[#611f69] hover:bg-[#611f69]/10 dark:hover:text-[#d8b4fe] dark:hover:bg-white/10"
+                    >
+                      <Link href={item.url}>{item.title}</Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                ))}
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link href={auth.login.url}>{auth.login.title}</Link>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-[#611f69] text-[#611f69] hover:bg-[#611f69] hover:text-white dark:border-[#c084fc] dark:text-[#e9d5ff] dark:hover:bg-[#c084fc] dark:hover:text-black"
+            >
+              <Link href="/login">Sign In</Link>
             </Button>
-            <Button asChild size="sm">
-              <Link href={auth.signup.url}>{auth.signup.title}</Link>
+
+            <Button
+              asChild
+              size="sm"
+              className="bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe]"
+            >
+              <Link href="/sign-up">Sign Up</Link>
             </Button>
-            <ModeToggle></ModeToggle>
+
+            <ModeToggle />
           </div>
         </nav>
 
-        {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
-              <Image
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-                width={32}
-                height={32}
-              />
-            </a>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
-                      <Image
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                        width={32}
-                        height={32}
-                      />
-                    </a>
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="flex flex-col gap-6 p-4">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="flex w-full flex-col gap-4"
-                  >
-                    {menu.map((item) => renderMobileMenuItem(item))}
-                  </Accordion>
+        {/* Mobile */}
+        <div className="flex h-16 items-center justify-between lg:hidden">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="SkillBridge Logo"
+              width={32}
+              height={32}
+              className="dark:invert"
+            />
+          </Link>
 
-                  <div className="flex flex-col gap-3">
-                    <Button asChild variant="outline">
-                      <Link href={auth.login.url}>{auth.login.title}</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href={auth.signup.url}>{auth.signup.title}</Link>
-                    </Button>
-                  </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button size="icon" variant="outline">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent className="overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Image
+                    src="/logo.png"
+                    alt="SkillBridge Logo"
+                    width={32}
+                    height={32}
+                  />
+                  <span className="relative rounded-md px-3 py-1 text-lg font-semibold tracking-tighter bg-linear-to-r from-[#7b2a85] via-[#611f69] to-[#4a174f] dark:from-[#d8b4fe] dark:via-[#c084fc] dark:to-[#a855f7] bg-size-[200%_200%] bg-left bg-clip-text text-transparent transition-all duration-500 hover:bg-right hover:bg-clip-padding hover:text-white dark:hover:text-black">
+                    SkillBridge
+                  </span>
+                </SheetTitle>
+              </SheetHeader>
+
+              <div className="mt-6 flex flex-col gap-6">
+                <Accordion type="single" collapsible className="space-y-3">
+                  {menu.map((item) => (
+                    <Link
+                      key={item.title}
+                      href={item.url}
+                      className="h-10 justify-center flex flex-col rounded-md px-4 py-2 text-sm font-medium transition-colors duration-300 hover:text-[#611f69] hover:bg-[#611f69]/10 dark:hover:text-[#d8b4fe] dark:hover:bg-white/10"
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
+                </Accordion>
+
+                <div className="flex flex-col gap-3">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="border-[#611f69] text-[#611f69] hover:bg-[#611f69] hover:text-white dark:border-[#611f69]  dark:text-[#e9d5ff] dark:hover:bg-[#611f69] dark:hover:text-white mx-4"
+                  >
+                    <Link href="/login">Sign In</Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    className="bg-[#611f69] text-white hover:bg-[#4a174f] mx-4"
+                  >
+                    <Link href="/sign-up">Sign Up</Link>
+                  </Button>
                 </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-    </section>
+    </header>
   );
-};
-
-const renderMenuItem = (item: MenuItem) => {
-  return (
-    <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        asChild
-        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
-      >
-        <Link href={item.url}>{item.title}</Link>
-      </NavigationMenuLink>
-    </NavigationMenuItem>
-  );
-};
-
-const renderMobileMenuItem = (item: MenuItem) => {
-  return (
-    <Link key={item.title} href={item.url} className="text-md font-semibold">
-      {item.title}
-    </Link>
-  );
-};
-
-export { Navbar };
+}
