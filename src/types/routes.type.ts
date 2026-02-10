@@ -5,3 +5,10 @@ export interface Route {
     url: string;
   }[];
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  description?:string;
+  image?: string;
+}

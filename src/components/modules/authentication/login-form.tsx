@@ -21,6 +21,7 @@ import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import * as z from "zod";
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email(),
@@ -60,6 +61,9 @@ export function LoginForm({
     },
   });
 
+  const params = useSearchParams();
+  const verified = params.get("verified");
+
   const handleGoogleLogin = async () => {
     try {
       const data = await authClient.signIn.social({
@@ -74,6 +78,13 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      {verified === "true" && (
+        <p style={{ color: "green" }}>Email verified successfully!</p>
+      )}
+      {verified === "false" && (
+        <p style={{ color: "red" }}>Verification failed or link expired.</p>
+      )}
+
       <Card className="border-[#611f69]/40 dark:border-[#c084fc]/40">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold text-[#611f69] dark:text-[#e9d5ff]">
