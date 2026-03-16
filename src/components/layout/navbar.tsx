@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import { useSessionContext } from "@/context/SessionContext";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { ModeToggle } from "./ModeToggle";
+import { useLogout } from "@/lib/logout";
 
 interface MenuItem {
   title: string;
@@ -40,6 +42,30 @@ export function Navbar({ className }: NavbarProps) {
     { title: "Contact Us", url: "/contact" },
     { title: "Dashboard", url: "/dashboard" },
   ];
+  const { user, loading, refetch } = useSessionContext();
+
+  const logout = useLogout();
+  console.log("SESSION USER:", user);
+
+  if (loading) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="SkillBridge Logo"
+              width={32}
+              height={32}
+            />
+          </Link>
+          <Button size="sm" variant="outline" disabled>
+            Loading...
+          </Button>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header
@@ -84,24 +110,48 @@ export function Navbar({ className }: NavbarProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="border-[#611f69] text-[#611f69] hover:bg-[#611f69] hover:text-white dark:border-[#c084fc] dark:text-[#e9d5ff] dark:hover:bg-[#c084fc] dark:hover:text-black"
-            >
-              <Link href="/login">Sign In</Link>
-            </Button>
+          <div className="flex items-center gap-3">
+            {!loading && user ? (
+              <>
+                <Link href="/dashboard">
+                  <Image
+                    src={user.image || "/avatar.png"}
+                    alt="profile"
+                    width={36}
+                    height={36}
+                    className="rounded-full border cursor-pointer"
+                  />
+                </Link>
 
-            <Button
-              asChild
-              size="sm"
-              className="bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe]"
-            >
-              <Link href="/sign-up">Sign Up</Link>
-            </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => logout(refetch)}
+                  className=""
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="border-[#611f69] text-[#611f69] hover:bg-[#611f69] hover:text-white dark:border-[#c084fc] dark:text-[#e9d5ff] dark:hover:bg-[#c084fc] dark:hover:text-black"
+                >
+                  <Link href="/login">Sign In</Link>
+                </Button>
 
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe]"
+                >
+                  <Link href="/sign-up">Sign Up</Link>
+                </Button>
+              </>
+            )}
             <ModeToggle />
           </div>
         </nav>
@@ -154,20 +204,46 @@ export function Navbar({ className }: NavbarProps) {
                 </Accordion>
 
                 <div className="flex flex-col gap-3">
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="border-[#611f69] text-[#611f69] hover:bg-[#611f69] hover:text-white dark:border-[#611f69]  dark:text-[#e9d5ff] dark:hover:bg-[#611f69] dark:hover:text-white mx-4"
-                  >
-                    <Link href="/login">Sign In</Link>
-                  </Button>
+                  {!loading && user ? (
+                    <>
+                      <Link
+                        href={"/dashboard"}
+                        className="flex items-center gap-3 px-4"
+                      >
+                        <Image
+                          src={user.image || "/avatar.png"}
+                          alt="profile"
+                          width={40}
+                          height={40}
+                          className="rounded-full"
+                        />
+                        <span>{user.name}</span>
+                      </Link>
+                      <Button
+                        onClick={() => logout(refetch)}
+                        className="bg-red-500 hover:bg-red-600 mx-4"
+                      >
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="border-[#611f69] text-[#611f69] hover:bg-[#611f69] hover:text-white dark:border-[#611f69]  dark:text-[#e9d5ff] dark:hover:bg-[#611f69] dark:hover:text-white mx-4"
+                      >
+                        <Link href="/login">Sign In</Link>
+                      </Button>
 
-                  <Button
-                    asChild
-                    className="bg-[#611f69] text-white hover:bg-[#4a174f] mx-4"
-                  >
-                    <Link href="/sign-up">Sign Up</Link>
-                  </Button>
+                      <Button
+                        asChild
+                        className="bg-[#611f69] text-white hover:bg-[#4a174f] mx-4"
+                      >
+                        <Link href="/sign-up">Sign Up</Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>

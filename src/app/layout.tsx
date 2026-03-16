@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
 import { ThemeProvider } from "@/providers/themeProvide";
 import { Toaster } from "sonner";
+import { SessionProvider } from "@/context/SessionContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,9 +37,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          {children}
-          <Toaster richColors closeButton />
+          <SessionProvider>
+            <Navbar />
+            {children}
+            <Toaster richColors closeButton />
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -22,6 +22,8 @@ import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "@/hooks/useSession";
+import { useSessionContext } from "@/context/SessionContext";
 
 const formSchema = z.object({
   email: z.email(),
@@ -32,6 +34,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<typeof Card>) {
+  const { refetch } = useSessionContext();
   const form = useForm({
     defaultValues: {
       email: "",
@@ -49,6 +52,7 @@ export function LoginForm({
           password: value.password,
           callbackURL: `${process.env.NEXT_PUBLIC_APP_URL}`,
         });
+        await refetch();
         if (error) {
           toast.error(error.message, { id: toastId });
           return;
@@ -192,3 +196,4 @@ export function LoginForm({
     </div>
   );
 }
+
