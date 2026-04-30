@@ -58,7 +58,7 @@ export default function TutorDashboardPage() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/tutor/bookings`,
+          `${process.env.NEXT_PUBLIC_API_URL}/bookings`,
           { credentials: "include" },
         );
         const data = await res.json();
@@ -154,7 +154,7 @@ export default function TutorDashboardPage() {
                     {booking.student?.name || "Student"}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(booking.date).toLocaleDateString()} • {booking.startTime}–{booking.endTime}
+                    {new Date(booking.dateTime).toLocaleDateString()} • {new Date(booking.dateTime).toLocaleTimeString("en-BD", { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
                 <Badge variant="warning">CONFIRMED</Badge>
