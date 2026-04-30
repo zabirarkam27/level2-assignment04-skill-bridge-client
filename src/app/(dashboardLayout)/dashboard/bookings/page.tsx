@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Booking, BookingStatus } from "@/types/routes.type";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
   CalendarDays,
@@ -10,7 +12,6 @@ import {
   BookOpen,
   CheckCircle2,
   XCircle,
-  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -28,7 +29,25 @@ const statusIcon: Record<string, React.ReactNode> = {
   CANCELLED: <XCircle className="w-3.5 h-3.5" />,
 };
 
-function BookingCard({ booking, index }: { booking: Booking; index: number }) {
+function BookingCard({
+  booking,
+  index,
+  onCancel,
+}: {
+  booking: Booking;
+  index: number;
+  onCancel: (id: string) => Promise<void>;
+}) {
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    await onCancel(booking.id);
+    setCancelling(false);
+  };
+
+  const canCancel = booking.status === "CONFIRMED" || booking.status === "PENDING";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -69,11 +88,23 @@ function BookingCard({ booking, index }: { booking: Booking; index: number }) {
           </Badge>
           {booking.status === "COMPLETED" && (
             <Link
-              href={`/mentors/${booking.tutorId}`}
+              href="/dashboard/reviews"
               className="text-xs text-[#611f69] dark:text-[#c084fc] hover:underline"
             >
               Leave Review
             </Link>
+          )}
+          {canCancel && (
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={cancelling}
+              onClick={handleCancel}
+              className="h-7 px-3 text-xs"
+            >
+              <XCircle className="w-3.5 h-3.5 mr-1" />
+              {cancelling ? "Cancelling…" : "Cancel"}
+            </Button>
           )}
         </div>
       </div>
@@ -118,6 +149,27 @@ export default function StudentBookingsPage() {
     };
     fetchBookings();
   }, []);
+
+  const cancelBooking = async (id: string) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "CANCELLED" }),
+        },
+      );
+      if (!res.ok) throw new Error();
+      setBookings((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, status: "CANCELLED" } : b)),
+      );
+      toast.success("Booking cancelled.");
+    } catch {
+      toast.error("Failed to cancel booking.");
+    }
+  };
 
   const filtered =
     filter === "ALL" ? bookings : bookings.filter((b) => b.status === filter);
@@ -169,7 +221,7 @@ export default function StudentBookingsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((b, i) => (
-            <BookingCard key={b.id} booking={b} index={i} />
+            <BookingCard key={b.id} booking={b} index={i} onCancel={cancelBooking} />
           ))}
         </div>
       )}

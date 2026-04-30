@@ -18,6 +18,7 @@ export interface Mentor {
   bio: string;
   subjects: string[];
   price: number;
+  rating?: number;
   user: {
     id?: string;
     name: string;
