@@ -27,7 +27,7 @@ export function MentorCard({ tutor, index }: MentorCardProps) {
       className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700"
     >
       {/* top accent bar */}
-      <div className="h-1 w-full bg-gradient-to-r from-[#7b2a85] via-[#611f69] to-[#a855f7]" />
+      <div className="h-1 w-full bg-linear-to-r from-[#7b2a85] via-[#611f69] to-[#a855f7]" />
 
       <div className="p-6 flex flex-col items-center text-center">
         {/* Avatar */}

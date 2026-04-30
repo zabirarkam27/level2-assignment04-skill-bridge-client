@@ -182,7 +182,7 @@ export default function MentorDetailPage() {
       >
         <div className="flex flex-col sm:flex-row gap-6">
           {/* Avatar */}
-          <div className="w-32 h-32 rounded-2xl overflow-hidden ring-4 ring-[#611f69]/20 flex-shrink-0 mx-auto sm:mx-0">
+          <div className="w-32 h-32 rounded-2xl overflow-hidden ring-4 ring-[#611f69]/20 shrink-0 mx-auto sm:mx-0">
             <Image
               src={mentor.user.image || "/avatar.png"}
               alt={mentor.user.name}
