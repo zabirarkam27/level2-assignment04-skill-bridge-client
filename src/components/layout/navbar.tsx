@@ -34,18 +34,17 @@ interface NavbarProps {
 }
 
 export function Navbar({ className }: NavbarProps) {
+  const { user, loading, refetch } = useSessionContext();
+  const logout = useLogout();
+
   const menu: MenuItem[] = [
     { title: "Home", url: "/" },
     { title: "Courses", url: "/courses" },
     { title: "Mentors", url: "/mentors" },
     { title: "Testimonials", url: "/testimonials" },
     { title: "Contact Us", url: "/contact" },
-    { title: "Dashboard", url: "/dashboard" },
+    ...(user ? [{ title: "Dashboard", url: "/dashboard" }] : []),
   ];
-  const { user, loading, refetch } = useSessionContext();
-
-  const logout = useLogout();
-  console.log("SESSION USER:", user);
 
   if (loading) {
     return (
