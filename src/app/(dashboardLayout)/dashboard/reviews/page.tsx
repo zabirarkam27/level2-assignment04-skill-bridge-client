@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Review } from "@/types/routes.type";
-import { Badge } from "@/components/ui/badge";
+import { Review, Booking } from "@/types/routes.type";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Star, MessageSquare, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +47,7 @@ function StarSelector({
 }
 
 function ReviewCard({ review, index }: { review: Review; index: number }) {
+  const tutorName = review.booking?.tutor?.user?.name ?? "Tutor";
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -59,12 +58,12 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-[#611f69]/10 flex items-center justify-center overflow-hidden">
           <span className="text-sm font-bold text-[#611f69]">
-            {review.student.name[0]}
+            {tutorName[0]}
           </span>
         </div>
         <div className="flex-1">
           <p className="font-semibold text-sm text-gray-900 dark:text-white">
-            {review.student.name}
+            {tutorName}
           </p>
           <div className="flex gap-0.5 mt-0.5">
             {[1, 2, 3, 4, 5].map((s) => (
@@ -94,29 +93,52 @@ export default function StudentReviewsPage() {
   const [showForm, setShowForm] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
-  const [tutorId, setTutorId] = useState("");
+  const [selectedBookingId, setSelectedBookingId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [reviewableBookings, setReviewableBookings] = useState<Booking[]>([]);
+
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/reviews/student`,
+        { credentials: "include" },
+      );
+      const data = await res.json();
+      setReviews(Array.isArray(data.data) ? data.data : []);
+    } catch {
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchReviewableBookings = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings`,
+        { credentials: "include" },
+      );
+      const data = await res.json();
+      const completed: Booking[] = Array.isArray(data.data)
+        ? data.data.filter((b: Booking) => b.status === "COMPLETED" && !b.review)
+        : [];
+      setReviewableBookings(completed);
+    } catch {
+      setReviewableBookings([]);
+    }
+  };
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/reviews/my`,
-          { credentials: "include" },
-        );
-        const data = await res.json();
-        setReviews(Array.isArray(data.data) ? data.data : []);
-      } catch {
-        setReviews([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchReviews();
   }, []);
 
+  const openForm = async () => {
+    await fetchReviewableBookings();
+    setShowForm(true);
+  };
+
   const handleSubmit = async () => {
-    if (!tutorId || rating < 1) return;
+    if (!selectedBookingId || rating < 1) return;
     setSubmitting(true);
     try {
       const res = await fetch(
@@ -125,19 +147,21 @@ export default function StudentReviewsPage() {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tutorId, rating, comment }),
+          body: JSON.stringify({ bookingId: selectedBookingId, rating, comment }),
         },
       );
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (data.data) setReviews((r) => [data.data, ...r]);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed");
+      }
       toast.success("Review submitted!");
       setShowForm(false);
       setComment("");
       setRating(5);
-      setTutorId("");
-    } catch {
-      toast.error("Failed to submit review");
+      setSelectedBookingId("");
+      fetchReviews();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit review");
     } finally {
       setSubmitting(false);
     }
@@ -152,11 +176,11 @@ export default function StudentReviewsPage() {
             My Reviews
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Reviews you've left for tutors
+            Reviews you&apos;ve left for tutors
           </p>
         </div>
         <Button
-          onClick={() => setShowForm(true)}
+          onClick={openForm}
           className="bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black"
         >
           <Plus className="w-4 h-4 mr-2" /> Leave Review
@@ -190,13 +214,28 @@ export default function StudentReviewsPage() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <label className="block text-sm font-medium mb-1.5">Tutor ID</label>
-              <input
-                value={tutorId}
-                onChange={(e) => setTutorId(e.target.value)}
-                placeholder="Paste tutor ID"
-                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40"
-              />
+              <label className="block text-sm font-medium mb-1.5">
+                Select Completed Session
+              </label>
+              {reviewableBookings.length === 0 ? (
+                <p className="text-sm text-gray-400 py-2">
+                  No completed sessions available to review. Sessions must be marked complete first.
+                </p>
+              ) : (
+                <select
+                  value={selectedBookingId}
+                  onChange={(e) => setSelectedBookingId(e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40"
+                >
+                  <option value="">Select a session…</option>
+                  {reviewableBookings.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.tutor?.user.name || "Tutor"} —{" "}
+                      {new Date(b.dateTime).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Rating</label>
@@ -216,7 +255,7 @@ export default function StudentReviewsPage() {
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             <Button
               onClick={handleSubmit}
-              disabled={submitting || !tutorId}
+              disabled={submitting || !selectedBookingId}
               className="bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black"
             >
               {submitting ? "Submitting..." : "Submit"}
