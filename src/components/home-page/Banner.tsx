@@ -52,11 +52,10 @@ export default function HomeBanner() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
-          <Button
-            size="lg"
+          <Button size="lg"
             className="rounded-2xl bg-gray-900 dark:bg-gray-100 dark:text-gray-900 px-10 py-6 text-base text-white shadow-lg transition transform duration-200 hover:scale-105 hover:bg-gray-800 dark:hover:bg-gray-200"
           >
-            Get Started
+            <a href="/sign-up" > Get Started</a>
           </Button>
 
           <Button
@@ -64,7 +63,7 @@ export default function HomeBanner() {
             variant="outline"
             className="rounded-2xl border-gray-400 dark:border-gray-300 px-10 py-6 text-base text-gray-700 dark:text-gray-300 transition transform duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-200 dark:hover:text-gray-900 hover:scale-105"
           >
-            Browse Courses
+            <a href="/courses">Browse Courses</a>
           </Button>
         </motion.div>
       </div>

@@ -9,6 +9,82 @@ export interface Route {
 export interface Category {
   id: string;
   name: string;
-  description?:string;
+  description?: string;
   image?: string;
+}
+
+export interface Mentor {
+  id: string;
+  bio: string;
+  subjects: string[];
+  price: number;
+  user: {
+    id?: string;
+    name: string;
+    image?: string;
+    email?: string;
+  };
+}
+
+export interface AvailabilitySlot {
+  id: string;
+  day: string; // e.g. "Monday"
+  startTime: string; // "09:00"
+  endTime: string; // "11:00"
+  isBooked: boolean;
+}
+
+export type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+
+export interface Booking {
+  id: string;
+  studentId: string;
+  tutorId: string;
+  dateTime: string; // ISO datetime string from API
+  status: BookingStatus;
+  createdAt: string;
+  tutor?: Mentor;
+  student?: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string;
+  };
+  review?: unknown;
+}
+
+export interface Review {
+  id: string;
+  rating: number; // 1–5
+  comment: string;
+  createdAt: string;
+  tutorId: string;
+  studentId: string;
+  // for GET /reviews/tutor/:id — student is nested under booking
+  booking?: {
+    student?: {
+      id: string;
+      name: string;
+      image?: string;
+    };
+    tutor?: {
+      user: {
+        id: string;
+        name: string;
+        image?: string;
+      };
+    };
+  };
+}
+
+export type UserRole = "STUDENT" | "TUTOR" | "ADMIN";
+
+export interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  role: UserRole;
+  status?: "ACTIVE" | "BANNED";
+  createdAt?: string;
 }

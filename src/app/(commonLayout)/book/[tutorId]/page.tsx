@@ -1,0 +1,233 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Mentor, AvailabilitySlot } from "@/types/routes.type";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import Image from "next/image";
+import { CalendarDays, Clock, User, ArrowLeft, BookOpen } from "lucide-react";
+import { useSessionContext } from "@/context/SessionContext";
+import { motion } from "framer-motion";
+
+export default function BookPage() {
+  const { tutorId } = useParams<{ tutorId: string }>();
+  const router = useRouter();
+  const { user } = useSessionContext();
+
+  const [mentor, setMentor] = useState<Mentor | null>(null);
+  const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
+  const [date, setDate] = useState("");
+  const [subject, setSubject] = useState("");
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    if (!user) { router.push("/login"); return; }
+    const fetchData = async () => {
+      try {
+        const [mRes, aRes] = await Promise.allSettled([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}/availability`),
+        ]);
+        if (mRes.status === "fulfilled") {
+          const d = await mRes.value.json();
+          setMentor(d.data || null);
+        }
+        if (aRes.status === "fulfilled") {
+          const d = await aRes.value.json();
+          setAvailability((Array.isArray(d.data) ? d.data : []).filter((s: AvailabilitySlot) => !s.isBooked));
+        }
+      } catch {/* */}
+      finally { setLoading(false); }
+    };
+    fetchData();
+  }, [tutorId, user, router]);
+
+  const handleBook = async () => {
+    if (!selectedSlot || !date) {
+      toast.error("Please select an availability slot and date");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tutorId,
+          availabilitySlotId: selectedSlot.id,
+          date,
+          startTime: selectedSlot.startTime,
+          endTime: selectedSlot.endTime,
+          subject: subject || mentor?.subjects[0],
+          note,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed");
+      }
+      toast.success("Session booked successfully! 🎉");
+      router.push("/dashboard/bookings");
+    } catch (err: any) {
+      toast.error(err.message || "Booking failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-[#611f69] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!mentor) {
+    return (
+      <div className="text-center py-24 text-gray-400">
+        <p>Tutor not found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-10">
+      <button
+        onClick={() => router.back()}
+        className="mb-6 flex items-center gap-2 text-sm text-gray-500 hover:text-[#611f69] dark:hover:text-[#c084fc] transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
+
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+        <BookOpen className="w-6 h-6 text-[#611f69] dark:text-[#c084fc]" />
+        Book a Session
+      </h1>
+
+      {/* Tutor info */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 mb-6 flex items-center gap-4"
+      >
+        <div className="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-[#611f69]/20 flex-shrink-0">
+          <Image
+            src={mentor.user.image || "/avatar.png"}
+            alt={mentor.user.name}
+            width={64}
+            height={64}
+            className="object-cover w-full h-full"
+          />
+        </div>
+        <div>
+          <p className="font-semibold text-gray-900 dark:text-white">{mentor.user.name}</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {mentor.subjects.slice(0, 3).join(", ")}
+          </p>
+          <p className="text-sm font-semibold text-[#611f69] dark:text-[#c084fc] mt-1">
+            ৳ {mentor.price}/hr
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Booking form */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm space-y-5"
+      >
+        {/* Availability slots */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-[#611f69] dark:text-[#c084fc]" />
+            Select Time Slot
+          </label>
+          {availability.length === 0 ? (
+            <p className="text-sm text-gray-400 py-3">No available slots. Try another tutor.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {availability.map((slot) => (
+                <button
+                  key={slot.id}
+                  onClick={() => setSelectedSlot(slot)}
+                  className={`text-left px-3 py-2.5 rounded-lg border text-xs font-medium transition-all ${
+                    selectedSlot?.id === slot.id
+                      ? "border-[#611f69] bg-[#611f69]/10 text-[#611f69] dark:border-[#c084fc] dark:bg-[#c084fc]/10 dark:text-[#e9d5ff]"
+                      : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#611f69]/50"
+                  }`}
+                >
+                  <p className="font-semibold">{slot.day}</p>
+                  <p>{slot.startTime} – {slot.endTime}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+            <CalendarDays className="w-4 h-4 text-[#611f69] dark:text-[#c084fc]" />
+            Preferred Date
+          </label>
+          <input
+            type="date"
+            value={date}
+            min={new Date().toISOString().split("T")[0]}
+            onChange={(e) => setDate(e.target.value)}
+            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40 dark:focus:ring-[#c084fc]/40"
+          />
+        </div>
+
+        {/* Subject */}
+        {mentor.subjects.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Subject
+            </label>
+            <select
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40 dark:focus:ring-[#c084fc]/40"
+            >
+              <option value="">Select subject</option>
+              {mentor.subjects.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Note */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Note (optional)
+          </label>
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Any specific topics you want to cover..."
+            rows={3}
+          />
+        </div>
+
+        <Button
+          onClick={handleBook}
+          disabled={submitting || !selectedSlot || !date}
+          className="w-full bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe] py-5 text-base"
+        >
+          {submitting ? "Booking..." : "Confirm Booking"}
+        </Button>
+      </motion.div>
+    </div>
+  );
+}

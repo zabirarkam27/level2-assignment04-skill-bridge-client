@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { UserRole } from "@/types/routes.type";
 
 export type SessionUser = {
   id: string;
   name: string;
   email: string;
   image?: string;
+  role: UserRole;
 };
 
 export function useSession() {
@@ -16,10 +18,13 @@ export function useSession() {
   const getSession = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`, {
-        credentials: "include",
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
+        {
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
       if (!res.ok) {
         setUser(null);
         return;
