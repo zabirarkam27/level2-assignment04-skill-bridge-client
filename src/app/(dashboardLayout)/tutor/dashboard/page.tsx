@@ -12,6 +12,8 @@ import {
   Users,
   Clock,
 } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface Stats {
   totalSessions: number;
@@ -109,14 +111,22 @@ export default function TutorDashboardPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <LayoutDashboard className="w-6 h-6 text-[#611f69] dark:text-[#c084fc]" />
-          Tutor Dashboard
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Overview of your teaching activity
-        </p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6 text-[#611f69] dark:text-[#c084fc]" />
+            Tutor Dashboard
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Overview of your teaching activity
+          </p>
+        </div>
+        <Button
+          asChild
+          className="bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe]"
+        >
+          <Link href="/">Back to Website</Link>
+        </Button>
       </div>
 
       {/* Stats */}
