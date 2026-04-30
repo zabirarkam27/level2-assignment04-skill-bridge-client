@@ -36,7 +36,14 @@ export default function TutorProfilePage() {
           { credentials: "include" },
         );
         const data = await res.json();
-        if (data.data) setProfile(data.data);
+        if (data.data) {
+          setProfile({
+            bio: data.data.bio ?? "",
+            subjects: data.data.subjects ?? [],
+            price: data.data.price ?? 0,
+            image: data.data.user?.image ?? "",
+          });
+        }
       } catch {
         /* no existing profile yet */
       } finally {
@@ -61,17 +68,26 @@ export default function TutorProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { image: _image, ...profileData } = profile;
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/mentors/profile`,
-        {
+      await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/profile`, {
           method: "PUT",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(profileData),
-        },
-      );
-      if (!res.ok) throw new Error("Failed");
+          body: JSON.stringify({
+            bio: profile.bio,
+            subjects: profile.subjects,
+            price: profile.price,
+          }),
+        }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: profile.image }),
+        }),
+      ]).then(([profileRes, userRes]) => {
+        if (!profileRes.ok || !userRes.ok) throw new Error("Failed");
+      });
       toast.success("Profile updated!");
     } catch {
       toast.error("Failed to update profile");
