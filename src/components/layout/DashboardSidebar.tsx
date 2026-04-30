@@ -30,6 +30,7 @@ function getNavItems(role?: string): NavItem[] {
       { title: "Dashboard", href: "/tutor/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
       { title: "My Sessions", href: "/tutor/sessions", icon: <CalendarDays className="w-4 h-4" /> },
       { title: "Availability", href: "/tutor/availability", icon: <Clock className="w-4 h-4" /> },
+      { title: "Reviews", href: "/tutor/reviews", icon: <Star className="w-4 h-4" /> },
       { title: "Profile", href: "/tutor/profile", icon: <User className="w-4 h-4" /> },
     ];
   }
