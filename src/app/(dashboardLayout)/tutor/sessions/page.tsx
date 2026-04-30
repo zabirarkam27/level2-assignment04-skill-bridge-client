@@ -8,10 +8,7 @@ import { toast } from "sonner";
 import { CalendarDays, Clock, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const statusVariant: Record<
-  BookingStatus,
-  "default" | "warning" | "success" | "destructive"
-> = {
+const statusVariant: Record<BookingStatus, "default" | "warning" | "success" | "destructive"> = {
   PENDING: "default",
   CONFIRMED: "warning",
   COMPLETED: "success",
@@ -26,9 +23,10 @@ export default function TutorSessionsPage() {
 
   const fetchBookings = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings`,
+        { credentials: "include" },
+      );
       const data = await res.json();
       setBookings(Array.isArray(data.data) ? data.data : []);
     } catch {
@@ -38,9 +36,7 @@ export default function TutorSessionsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  useEffect(() => { fetchBookings(); }, []);
 
   const markComplete = async (id: string) => {
     setCompleting(id);
@@ -100,10 +96,7 @@ export default function TutorSessionsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-20 bg-white dark:bg-gray-800 rounded-xl border animate-pulse"
-            />
+            <div key={i} className="h-20 bg-white dark:bg-gray-800 rounded-xl border animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -135,10 +128,7 @@ export default function TutorSessionsPage() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {new Date(b.dateTime).toLocaleTimeString("en-BD", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {new Date(b.dateTime).toLocaleTimeString("en-BD", { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               </div>

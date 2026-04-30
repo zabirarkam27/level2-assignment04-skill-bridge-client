@@ -40,7 +40,16 @@ export default function BookPage() {
         }
         if (aRes.status === "fulfilled") {
           const d = await aRes.value.json();
-          setAvailability((Array.isArray(d.data) ? d.data : []).filter((s: AvailabilitySlot) => !s.isBooked));
+          const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          setAvailability(
+            (Array.isArray(d.data) ? d.data : []).map((s: any) => ({
+              id: s.id,
+              day: DAY_NAMES[s.dayOfWeek] ?? "Unknown",
+              startTime: s.startTime,
+              endTime: s.endTime,
+              isBooked: false,
+            }))
+          );
         }
       } catch {/* */}
       finally { setLoading(false); }
@@ -55,18 +64,14 @@ export default function BookPage() {
     }
     setSubmitting(true);
     try {
+      const dateTime = new Date(`${date}T${selectedSlot.startTime}:00`).toISOString();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tutorId,
-          availabilitySlotId: selectedSlot.id,
-          date,
-          startTime: selectedSlot.startTime,
-          endTime: selectedSlot.endTime,
-          subject: subject || mentor?.subjects[0],
-          note,
+          dateTime,
         }),
       });
       if (!res.ok) {

@@ -14,13 +14,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const statusVariant: Record<BookingStatus, "default" | "success" | "destructive" | "warning"> = {
+const statusVariant: Record<string, "default" | "success" | "destructive" | "warning"> = {
+  PENDING: "default",
   CONFIRMED: "warning",
   COMPLETED: "success",
   CANCELLED: "destructive",
 };
 
-const statusIcon: Record<BookingStatus, React.ReactNode> = {
+const statusIcon: Record<string, React.ReactNode> = {
+  PENDING: <Clock className="w-3.5 h-3.5" />,
   CONFIRMED: <Clock className="w-3.5 h-3.5" />,
   COMPLETED: <CheckCircle2 className="w-3.5 h-3.5" />,
   CANCELLED: <XCircle className="w-3.5 h-3.5" />,
@@ -40,12 +42,12 @@ function BookingCard({ booking, index }: { booking: Booking; index: number }) {
             {booking.tutor?.user.name || "Tutor"}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            {booking.subject || (booking.tutor?.subjects?.[0] ?? "Session")}
+            {(booking.tutor as any)?.subjects?.[0] ?? "Tutoring Session"}
           </p>
           <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
             <span className="flex items-center gap-1">
               <CalendarDays className="w-3.5 h-3.5" />
-              {new Date(booking.date).toLocaleDateString("en-BD", {
+              {new Date(booking.dateTime).toLocaleDateString("en-BD", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
@@ -53,7 +55,10 @@ function BookingCard({ booking, index }: { booking: Booking; index: number }) {
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
-              {booking.startTime} – {booking.endTime}
+              {new Date(booking.dateTime).toLocaleTimeString("en-BD", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
           </div>
         </div>
@@ -131,7 +136,7 @@ export default function StudentBookingsPage() {
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-5 flex-wrap">
-        {(["ALL", "CONFIRMED", "COMPLETED", "CANCELLED"] as const).map((s) => (
+        {(["ALL", "CONFIRMED", "COMPLETED", "CANCELLED", "PENDING"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}

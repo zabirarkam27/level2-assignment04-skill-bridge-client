@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, Search } from "lucide-react";
 import { motion } from "framer-motion";
 
-const statusVariant: Record<BookingStatus, "warning" | "success" | "destructive"> = {
+const statusVariant: Record<BookingStatus, "default" | "warning" | "success" | "destructive"> = {
+  PENDING: "default",
   CONFIRMED: "warning",
   COMPLETED: "success",
   CANCELLED: "destructive",
@@ -42,8 +43,7 @@ export default function AdminBookingsPage() {
       const q = search.toLowerCase();
       return (
         b.tutor?.user.name?.toLowerCase().includes(q) ||
-        b.student?.name?.toLowerCase().includes(q) ||
-        b.subject?.toLowerCase().includes(q)
+        b.student?.name?.toLowerCase().includes(q)
       );
     });
 
@@ -122,9 +122,8 @@ export default function AdminBookingsPage() {
                     {booking.tutor?.user.name || "Tutor"}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {booking.subject || "Session"} •{" "}
-                    {new Date(booking.date).toLocaleDateString()} •{" "}
-                    {booking.startTime}–{booking.endTime}
+                    {new Date(booking.dateTime).toLocaleDateString()} •{" "}
+                    {new Date(booking.dateTime).toLocaleTimeString("en-BD", { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
                 <Badge variant={statusVariant[booking.status]}>

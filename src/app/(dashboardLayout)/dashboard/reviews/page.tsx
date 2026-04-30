@@ -82,7 +82,9 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
           {new Date(review.createdAt).toLocaleDateString()}
         </span>
       </div>
-      <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-300">
+        {review.comment}
+      </p>
     </motion.div>
   );
 }
@@ -114,13 +116,14 @@ export default function StudentReviewsPage() {
 
   const fetchReviewableBookings = async () => {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/bookings`,
-        { credentials: "include" },
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
+        credentials: "include",
+      });
       const data = await res.json();
       const completed: Booking[] = Array.isArray(data.data)
-        ? data.data.filter((b: Booking) => b.status === "COMPLETED" && !b.review)
+        ? data.data.filter(
+            (b: Booking) => b.status === "COMPLETED" && !b.review,
+          )
         : [];
       setReviewableBookings(completed);
     } catch {
@@ -141,15 +144,12 @@ export default function StudentReviewsPage() {
     if (!selectedBookingId || rating < 1) return;
     setSubmitting(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/reviews`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ bookingId: selectedBookingId, rating, comment }),
-        },
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: selectedBookingId, rating, comment }),
+      });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.message || "Failed");
@@ -190,7 +190,10 @@ export default function StudentReviewsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-28 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 animate-pulse" />
+            <div
+              key={i}
+              className="h-28 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 animate-pulse"
+            />
           ))}
         </div>
       ) : reviews.length === 0 ? (
@@ -219,7 +222,8 @@ export default function StudentReviewsPage() {
               </label>
               {reviewableBookings.length === 0 ? (
                 <p className="text-sm text-gray-400 py-2">
-                  No completed sessions available to review. Sessions must be marked complete first.
+                  No completed sessions available to review. Sessions must be
+                  marked complete first.
                 </p>
               ) : (
                 <select
@@ -242,7 +246,9 @@ export default function StudentReviewsPage() {
               <StarSelector value={rating} onChange={setRating} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5">Comment</label>
+              <label className="block text-sm font-medium mb-1.5">
+                Comment
+              </label>
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -252,7 +258,9 @@ export default function StudentReviewsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>
+              Cancel
+            </Button>
             <Button
               onClick={handleSubmit}
               disabled={submitting || !selectedBookingId}

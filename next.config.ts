@@ -27,6 +27,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "cdn.vectorstock.com",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.filmibeat.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.filmibeat.com",
+      },
     ],
   },
 };
