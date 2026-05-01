@@ -56,14 +56,21 @@ export function SignupForm(props: React.ComponentProps<typeof Card>) {
           return;
         }
 
-        toast.success(
-          "Account created successfully! Please check your email.",
-          { id: toastId },
-        );
+        if (value.role === "TUTOR") {
+          toast.success(
+            "Application submitted! Please verify your email. An admin will review your request before you can log in.",
+            { id: toastId, duration: 6000 },
+          );
+        } else {
+          toast.success(
+            "Account created! Please check your email to verify your address.",
+            { id: toastId },
+          );
+        }
 
         setTimeout(() => {
           window.location.href = "/login";
-        }, 1000);
+        }, 1500);
       } catch {
         toast.error("Registration failed", { id: toastId });
       }
@@ -161,6 +168,8 @@ export function SignupForm(props: React.ComponentProps<typeof Card>) {
                 <Field>
                   <FieldLabel>Account Type</FieldLabel>
                   <select
+                    title="Account Type"
+                    aria-label="Account Type"
                     value={field.state.value}
                     onChange={(e) =>
                       field.handleChange(e.target.value as "STUDENT" | "TUTOR")

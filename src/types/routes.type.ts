@@ -80,12 +80,20 @@ export interface Review {
 
 export type UserRole = "STUDENT" | "TUTOR" | "ADMIN";
 
+export type UserStatus = "ACTIVE" | "BANNED" | "PENDING" | "REJECTED";
+
 export interface AppUser {
   id: string;
   name: string;
   email: string;
   image?: string;
   role: UserRole;
-  status?: "ACTIVE" | "BANNED";
+  status?: UserStatus;
   createdAt?: string;
+  tutorProfile?: {
+    id: string;
+    bio: string;
+    subjects: string[];
+    price: number;
+  } | null;
 }

@@ -4,9 +4,67 @@ import { useSessionContext } from "@/context/SessionContext";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Clock, XCircle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useLogout } from "@/lib/logout";
+
+function PendingScreen() {
+  const { refetch } = useSessionContext();
+  const logout = useLogout();
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+      <div className="max-w-md w-full text-center bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-10">
+        <div className="w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mx-auto mb-5">
+          <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          Application Under Review
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+          Your tutor application has been submitted and is currently being
+          reviewed by our team. You will be able to access your dashboard once
+          an admin approves your account.
+        </p>
+        <button
+          onClick={() => logout(refetch)}
+          type="button"
+          className="mt-6 text-sm text-red-500 hover:underline"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RejectedScreen() {
+  const { refetch } = useSessionContext();
+  const logout = useLogout();
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+      <div className="max-w-md w-full text-center bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-10">
+        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-5">
+          <XCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          Application Not Approved
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+          Unfortunately, your tutor application was not approved at this time.
+          Please contact our support team for more information.
+        </p>
+        <button
+          onClick={() => logout(refetch)}
+          type="button"
+          className="mt-6 text-sm text-red-500 hover:underline"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -36,6 +94,9 @@ export default function DashboardLayout({
 
   if (!user) return null;
 
+  if (user.status === "PENDING") return <PendingScreen />;
+  if (user.status === "REJECTED") return <RejectedScreen />;
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Mobile overlay */}
@@ -62,6 +123,8 @@ export default function DashboardLayout({
         <div className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
           <button
             onClick={() => setSidebarOpen(true)}
+            title="Open sidebar"
+            aria-label="Open sidebar"
             className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Menu className="w-5 h-5" />

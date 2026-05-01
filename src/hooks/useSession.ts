@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserRole } from "@/types/routes.type";
+import { UserRole, UserStatus } from "@/types/routes.type";
 
 export type SessionUser = {
   id: string;
@@ -9,6 +9,7 @@ export type SessionUser = {
   email: string;
   image?: string;
   role: UserRole;
+  status: UserStatus;
 };
 
 export function useSession() {

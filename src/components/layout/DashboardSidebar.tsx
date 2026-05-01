@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Globe,
   ArrowLeft,
+  UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/lib/logout";
@@ -40,6 +41,7 @@ function getNavItems(role?: string): NavItem[] {
     return [
       { title: "Dashboard", href: "/admin", icon: <LayoutDashboard className="w-4 h-4" /> },
       { title: "Users", href: "/admin/users", icon: <Users className="w-4 h-4" /> },
+      { title: "Tutor Requests", href: "/admin/tutors", icon: <UserCheck className="w-4 h-4" /> },
       { title: "Bookings", href: "/admin/bookings", icon: <BookOpen className="w-4 h-4" /> },
       { title: "Categories", href: "/admin/categories", icon: <FolderOpen className="w-4 h-4" /> },
     ];
