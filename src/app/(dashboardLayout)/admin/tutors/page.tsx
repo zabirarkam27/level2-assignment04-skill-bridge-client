@@ -4,14 +4,46 @@ import { useEffect, useState } from "react";
 import { AppUser } from "@/types/routes.type";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { UserCheck, UserX, Clock, BookOpen, DollarSign } from "lucide-react";
+import {
+  UserCheck,
+  UserX,
+  Clock,
+  BookOpen,
+  DollarSign,
+  Plus,
+  Copy,
+  Check,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { getAvatarUrl } from "@/lib/avatar";
+
+const emptyForm = { name: "", email: "", bio: "", subjects: "", price: "" };
 
 export default function AdminTutorRequestsPage() {
   const [tutors, setTutors] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // create dialog
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [creating, setCreating] = useState(false);
+
+  // password reveal dialog
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const fetchPending = async () => {
     try {
@@ -64,18 +96,69 @@ export default function AdminTutorRequestsPage() {
     }
   };
 
+  const handleCreate = async () => {
+    if (!form.name || !form.email || !form.bio || !form.subjects || !form.price) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/users/create-mentor`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            bio: form.bio,
+            subjects: form.subjects.split(",").map((s) => s.trim()).filter(Boolean),
+            price: Number(form.price),
+          }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to create tutor");
+      setCreateOpen(false);
+      setForm(emptyForm);
+      setGeneratedPassword(data.data.generatedPassword);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create tutor");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const copyPassword = () => {
+    if (!generatedPassword) return;
+    navigator.clipboard.writeText(generatedPassword);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Clock className="w-6 h-6 text-[#611f69] dark:text-[#c084fc]" />
-          Tutor Requests
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {loading ? "Loading…" : `${tutors.length} pending application${tutors.length !== 1 ? "s" : ""}`}
-        </p>
+      {/* Header */}
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Clock className="w-6 h-6 text-[#611f69] dark:text-[#c084fc]" />
+            Tutor Requests
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {loading ? "Loading…" : `${tutors.length} pending application${tutors.length !== 1 ? "s" : ""}`}
+          </p>
+        </div>
+        <Button
+          onClick={() => setCreateOpen(true)}
+          className="bg-[#611f69] hover:bg-[#4a174f] text-white dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe]"
+        >
+          <Plus className="w-4 h-4 mr-2" /> Create New Tutor
+        </Button>
       </div>
 
+      {/* Pending list */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-6 space-y-4">
@@ -106,19 +189,13 @@ export default function AdminTutorRequestsPage() {
                 transition={{ delay: i * 0.05 }}
                 className="flex items-start gap-4 px-5 py-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
-                {/* Avatar */}
-                <div className="w-10 h-10 rounded-full bg-[#611f69]/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-sm font-bold text-[#611f69] dark:text-[#c084fc]">
-                    {tutor.name[0].toUpperCase()}
-                  </span>
+                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 mt-0.5">
+                  <Image src={getAvatarUrl(tutor.image)} alt={tutor.name} width={40} height={40} className="object-cover w-full h-full" />
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {tutor.name}
-                    </p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{tutor.name}</p>
                     <Badge variant="outline" className="text-yellow-600 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
                       PENDING
                     </Badge>
@@ -157,7 +234,6 @@ export default function AdminTutorRequestsPage() {
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
                     size="sm"
@@ -165,9 +241,7 @@ export default function AdminTutorRequestsPage() {
                     onClick={() => handleApprove(tutor.id)}
                     className="h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {updating === tutor.id ? "…" : (
-                      <><UserCheck className="w-3.5 h-3.5 mr-1" /> Approve</>
-                    )}
+                    {updating === tutor.id ? "…" : <><UserCheck className="w-3.5 h-3.5 mr-1" />Approve</>}
                   </Button>
                   <Button
                     size="sm"
@@ -176,9 +250,7 @@ export default function AdminTutorRequestsPage() {
                     onClick={() => handleReject(tutor.id)}
                     className="h-8 text-xs border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
-                    {updating === tutor.id ? "…" : (
-                      <><UserX className="w-3.5 h-3.5 mr-1" /> Reject</>
-                    )}
+                    {updating === tutor.id ? "…" : <><UserX className="w-3.5 h-3.5 mr-1" />Reject</>}
                   </Button>
                 </div>
               </motion.div>
@@ -186,6 +258,124 @@ export default function AdminTutorRequestsPage() {
           </div>
         )}
       </div>
+
+      {/* Create Tutor Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create New Tutor</DialogTitle>
+            <DialogDescription>
+              The account is created immediately as active. A temporary password will be generated — share it with the tutor.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
+                <Input
+                  placeholder="Jane Smith"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                <Input
+                  type="email"
+                  placeholder="jane@example.com"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
+              <Textarea
+                placeholder="Professional background and what they teach…"
+                rows={3}
+                className="resize-none"
+                value={form.bio}
+                onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Subjects (comma separated)</label>
+                <Input
+                  placeholder="React, Node.js, Design"
+                  value={form.subjects}
+                  onChange={(e) => setForm((f) => ({ ...f, subjects: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Hourly Price ($)</label>
+                <Input
+                  type="number"
+                  placeholder="50"
+                  min={1}
+                  value={form.price}
+                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setCreateOpen(false)} disabled={creating}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={creating || !form.name || !form.email || !form.bio || !form.subjects || !form.price}
+              onClick={handleCreate}
+              className="bg-[#611f69] hover:bg-[#4a174f] text-white dark:bg-[#c084fc] dark:text-black"
+            >
+              {creating ? "Creating…" : "Create Tutor"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Generated Password Dialog */}
+      <Dialog open={!!generatedPassword} onOpenChange={() => setGeneratedPassword(null)}>
+        <DialogContent className="sm:max-w-sm text-center">
+          <DialogHeader>
+            <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
+              <UserCheck className="w-7 h-7 text-green-600 dark:text-green-400" />
+            </div>
+            <DialogTitle>Tutor Account Created</DialogTitle>
+            <DialogDescription>
+              Share this temporary password with the tutor. They can change it after logging in.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div
+            className="my-2 px-5 py-4 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-[#611f69]/30 dark:border-[#c084fc]/30 cursor-pointer select-all"
+            onClick={copyPassword}
+          >
+            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Temporary Password</p>
+            <p className="text-2xl font-mono font-bold text-[#611f69] dark:text-[#c084fc] tracking-tight break-all">
+              {generatedPassword}
+            </p>
+          </div>
+
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button type="button" variant="outline" onClick={copyPassword} className="w-full">
+              {copied ? <><Check className="w-4 h-4 mr-2 text-green-500" />Copied!</> : <><Copy className="w-4 h-4 mr-2" />Copy Password</>}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setGeneratedPassword(null)}
+              className="w-full bg-[#611f69] hover:bg-[#4a174f] text-white dark:bg-[#c084fc] dark:text-black"
+            >
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

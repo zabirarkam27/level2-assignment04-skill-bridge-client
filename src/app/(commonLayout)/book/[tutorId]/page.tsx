@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Mentor, AvailabilitySlot } from "@/types/routes.type";
+import type { Mentor, AvailabilitySlot } from "@/types/routes.type";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import Image from "next/image";
 import { CalendarDays, Clock, User, ArrowLeft, BookOpen } from "lucide-react";
+import { getAvatarUrl } from "@/lib/avatar";
 import { useSessionContext } from "@/context/SessionContext";
 import { motion } from "framer-motion";
 
@@ -21,18 +22,25 @@ export default function BookPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(
+    null,
+  );
   const [date, setDate] = useState("");
   const [subject, setSubject] = useState("");
   const [note, setNote] = useState("");
 
   useEffect(() => {
-    if (!user) { router.push("/login"); return; }
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     const fetchData = async () => {
       try {
         const [mRes, aRes] = await Promise.allSettled([
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}`),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}/availability`),
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}/availability`,
+          ),
         ]);
         if (mRes.status === "fulfilled") {
           const d = await mRes.value.json();
@@ -40,7 +48,15 @@ export default function BookPage() {
         }
         if (aRes.status === "fulfilled") {
           const d = await aRes.value.json();
-          const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          const DAY_NAMES = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ];
           setAvailability(
             (Array.isArray(d.data) ? d.data : []).map((s: any) => ({
               id: s.id,
@@ -48,11 +64,14 @@ export default function BookPage() {
               startTime: s.startTime,
               endTime: s.endTime,
               isBooked: false,
-            }))
+            })),
           );
         }
-      } catch {/* */}
-      finally { setLoading(false); }
+      } catch {
+        /* */
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [tutorId, user, router]);
@@ -64,7 +83,9 @@ export default function BookPage() {
     }
     setSubmitting(true);
     try {
-      const dateTime = new Date(`${date}T${selectedSlot.startTime}:00`).toISOString();
+      const dateTime = new Date(
+        `${date}T${selectedSlot.startTime}:00`,
+      ).toISOString();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
         method: "POST",
         credentials: "include",
@@ -125,7 +146,7 @@ export default function BookPage() {
       >
         <div className="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-[#611f69]/20 flex-shrink-0">
           <Image
-            src={mentor.user.image || "/avatar.png"}
+            src={getAvatarUrl(mentor.user.image)}
             alt={mentor.user.name}
             width={64}
             height={64}
@@ -133,7 +154,9 @@ export default function BookPage() {
           />
         </div>
         <div>
-          <p className="font-semibold text-gray-900 dark:text-white">{mentor.user.name}</p>
+          <p className="font-semibold text-gray-900 dark:text-white">
+            {mentor.user.name}
+          </p>
           <p className="text-sm text-gray-500 mt-0.5">
             {mentor.subjects.slice(0, 3).join(", ")}
           </p>
@@ -157,7 +180,9 @@ export default function BookPage() {
             Select Time Slot
           </label>
           {availability.length === 0 ? (
-            <p className="text-sm text-gray-400 py-3">No available slots. Try another tutor.</p>
+            <p className="text-sm text-gray-400 py-3">
+              No available slots. Try another tutor.
+            </p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {availability.map((slot) => (
@@ -171,7 +196,9 @@ export default function BookPage() {
                   }`}
                 >
                   <p className="font-semibold">{slot.day}</p>
-                  <p>{slot.startTime} – {slot.endTime}</p>
+                  <p>
+                    {slot.startTime} – {slot.endTime}
+                  </p>
                 </button>
               ))}
             </div>
@@ -189,6 +216,7 @@ export default function BookPage() {
             value={date}
             min={new Date().toISOString().split("T")[0]}
             onChange={(e) => setDate(e.target.value)}
+            title="Preferred Date"
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40 dark:focus:ring-[#c084fc]/40"
           />
         </div>
@@ -202,11 +230,14 @@ export default function BookPage() {
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
+              title="Select a subject"
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40 dark:focus:ring-[#c084fc]/40"
             >
               <option value="">Select subject</option>
               {mentor.subjects.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
           </div>

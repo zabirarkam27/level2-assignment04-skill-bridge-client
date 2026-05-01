@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import Image from "next/image";
 import { User, Save, Camera } from "lucide-react";
+import { getAvatarUrl } from "@/lib/avatar";
 
 export default function StudentProfilePage() {
   const { user, refetch } = useSessionContext();
@@ -60,13 +61,7 @@ export default function StudentProfilePage() {
         {/* Avatar */}
         <div className="flex flex-col items-center gap-3">
           <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-[#611f69]/20 dark:ring-[#c084fc]/20">
-            {image ? (
-              <Image src={image} alt="avatar" fill className="object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-[#611f69]/10 dark:bg-[#c084fc]/10">
-                <User className="w-10 h-10 text-[#611f69] dark:text-[#c084fc]" />
-              </div>
-            )}
+            <Image src={getAvatarUrl(image)} alt="avatar" fill className="object-cover" />
           </div>
           <p className="text-xs text-gray-400 flex items-center gap-1">
             <Camera className="w-3.5 h-3.5" /> Paste image URL below

@@ -8,8 +8,9 @@ import { Mentor, Category } from "@/types/routes.type";
 import { Star, BookOpen, Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getAvatarUrl } from "@/lib/avatar";
 
-// ─── MentorCard ──────────────────────────────────────────────────────────────
+// MentorCard
 
 interface MentorCardProps {
   tutor: Mentor;
@@ -27,14 +28,14 @@ export function MentorCard({ tutor, index }: MentorCardProps) {
       className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700"
     >
       {/* top accent bar */}
-      <div className="h-1 w-full bg-linear-to-r from-[#7b2a85] via-[#611f69] to-[#a855f7]" />
+      <div className="h-1 w-full bg-gradient-to-r from-[#7b2a85] via-[#611f69] to-[#a855f7]" />
 
       <div className="p-6 flex flex-col items-center text-center">
         {/* Avatar */}
         <div className="relative mb-4">
           <div className="w-24 h-24 rounded-full ring-4 ring-[#611f69]/30 group-hover:ring-[#611f69] transition-all duration-300 overflow-hidden">
             <Image
-              src={tutor.user.image || "/avatar.png"}
+              src={getAvatarUrl(tutor.user.image)}
               alt={tutor.user.name}
               width={96}
               height={96}
@@ -119,7 +120,7 @@ function MentorSkeleton() {
   );
 }
 
-// AllMentors
+// ─── AllMentors ───────────────────────────────────────────────────────────────
 
 interface AllMentorsProps {
   limit?: number;

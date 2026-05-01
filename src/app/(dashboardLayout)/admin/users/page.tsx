@@ -14,12 +14,64 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
+import { getAvatarUrl } from "@/lib/avatar";
+
+function DeleteDialog({
+  user,
+  onDelete,
+  isDeleting,
+}: {
+  user: AppUser;
+  onDelete: (id: string, close: () => void) => Promise<void>;
+  isDeleting: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete User</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete <b>{user.name}</b>? This action
+            cannot be undone and all associated data will be lost.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="sm:justify-end gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setOpen(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isDeleting}
+            onClick={() => onDelete(user.id, () => setOpen(false))}
+          >
+            {isDeleting ? "Deleting…" : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -71,7 +123,8 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleDelete = async (userId: string) => {
+  const handleDelete = async (userId: string, closeDialog: () => void) => {
+    setUpdating(userId);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/admin/users/${userId}`,
@@ -80,11 +133,17 @@ export default function AdminUsersPage() {
           credentials: "include",
         },
       );
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Failed");
+      }
       setUsers((u) => u.filter((usr) => usr.id !== userId));
+      closeDialog();
       toast.success("User removed successfully");
-    } catch {
-      toast.error("Failed to remove user");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove user");
+    } finally {
+      setUpdating(null);
     }
   };
 
@@ -157,14 +216,8 @@ export default function AdminUsersPage() {
                   className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#611f69]/10 flex items-center justify-center flex-shrink-0">
-                    {user.image ? (
-                      <Image src={user.image} alt={user.name} width={40} height={40} className="object-cover" />
-                    ) : (
-                      <span className="text-sm font-bold text-[#611f69] dark:text-[#c084fc]">
-                        {user.name[0].toUpperCase()}
-                      </span>
-                    )}
+                  <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+                    <Image src={getAvatarUrl(user.image)} alt={user.name} width={40} height={40} className="object-cover w-full h-full" />
                   </div>
 
                   {/* Info */}
@@ -217,39 +270,11 @@ export default function AdminUsersPage() {
                       </Button>
 
                       {/* Delete Dialog */}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Delete User</DialogTitle>
-                            <DialogDescription>
-                              Are you sure you want to delete <b>{user.name}</b>? This action cannot be undone and all associated data will be lost.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter className="sm:justify-end gap-2">
-                            <DialogClose asChild>
-                              <Button type="button" variant="secondary">
-                                Cancel
-                              </Button>
-                            </DialogClose>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              onClick={() => handleDelete(user.id)}
-                            >
-                              Delete
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                      <DeleteDialog
+                        user={user}
+                        onDelete={handleDelete}
+                        isDeleting={updating === user.id}
+                      />
                     </div>
                   )}
                 </motion.div>

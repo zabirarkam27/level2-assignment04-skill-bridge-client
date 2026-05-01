@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { User, Save, Plus, X, DollarSign } from "lucide-react";
 import Image from "next/image";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface TutorProfile {
   bio: string;
@@ -119,13 +120,7 @@ export default function TutorProfilePage() {
         {/* Avatar preview */}
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full overflow-hidden ring-4 ring-[#611f69]/20">
-            {profile.image ? (
-              <Image src={profile.image} alt="avatar" width={64} height={64} className="object-cover w-full h-full" />
-            ) : (
-              <div className="w-full h-full bg-[#611f69]/10 flex items-center justify-center">
-                <User className="w-7 h-7 text-[#611f69]" />
-              </div>
-            )}
+            <Image src={getAvatarUrl(profile.image)} alt="avatar" width={64} height={64} className="object-cover w-full h-full" />
           </div>
           <div className="flex-1">
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">

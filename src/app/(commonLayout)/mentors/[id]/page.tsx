@@ -17,6 +17,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getAvatarUrl } from "@/lib/avatar";
 import { useSessionContext } from "@/context/SessionContext";
 import Link from "next/link";
 
@@ -41,32 +42,20 @@ function ReviewCard({ review }: { review: Review }) {
       <div className="flex items-center gap-3 mb-2">
         <div className="w-9 h-9 rounded-full bg-[#611f69]/10 flex items-center justify-center overflow-hidden">
           {student?.image ? (
-            <Image
-              src={student.image}
-              alt={studentName}
-              width={36}
-              height={36}
-              className="object-cover"
-            />
+            <Image src={student.image} alt={studentName} width={36} height={36} className="object-cover" />
           ) : (
-            <span className="text-sm font-bold text-[#611f69]">
-              {studentName[0]}
-            </span>
+            <span className="text-sm font-bold text-[#611f69]">{studentName[0]}</span>
           )}
         </div>
         <div>
-          <p className="text-sm font-semibold text-gray-900 dark:text-white">
-            {studentName}
-          </p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">{studentName}</p>
           <StarRating rating={review.rating} />
         </div>
         <span className="ml-auto text-xs text-gray-400">
           {new Date(review.createdAt).toLocaleDateString()}
         </span>
       </div>
-      <p className="text-sm text-gray-600 dark:text-gray-300">
-        {review.comment}
-      </p>
+      <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>
     </div>
   );
 }
@@ -86,9 +75,7 @@ export default function MentorDetailPage() {
         const [mentorRes, reviewsRes, availRes] = await Promise.allSettled([
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${id}`),
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${id}/reviews`),
-          fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/mentors/${id}/availability`,
-          ),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${id}/availability`),
         ]);
 
         if (mentorRes.status === "fulfilled") {
@@ -101,15 +88,7 @@ export default function MentorDetailPage() {
         }
         if (availRes.status === "fulfilled") {
           const d = await availRes.value.json();
-          const DAY_NAMES = [
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ];
+          const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
           setAvailability(
             (Array.isArray(d.data) ? d.data : []).map((s: any) => ({
               id: s.id,
@@ -117,7 +96,7 @@ export default function MentorDetailPage() {
               startTime: s.startTime,
               endTime: s.endTime,
               isBooked: false,
-            })),
+            }))
           );
         }
       } catch {
@@ -154,10 +133,7 @@ export default function MentorDetailPage() {
       <div className="text-center py-24 text-gray-400">
         <User className="w-12 h-12 mx-auto mb-3 opacity-40" />
         <p>Mentor not found.</p>
-        <Link
-          href="/mentors"
-          className="mt-3 inline-block text-[#611f69] hover:underline text-sm"
-        >
+        <Link href="/mentors" className="mt-3 inline-block text-[#611f69] hover:underline text-sm">
           ← Back to mentors
         </Link>
       </div>
@@ -182,9 +158,9 @@ export default function MentorDetailPage() {
       >
         <div className="flex flex-col sm:flex-row gap-6">
           {/* Avatar */}
-          <div className="w-32 h-32 rounded-2xl overflow-hidden ring-4 ring-[#611f69]/20 shrink-0 mx-auto sm:mx-0">
+          <div className="w-32 h-32 rounded-2xl overflow-hidden ring-4 ring-[#611f69]/20 flex-shrink-0 mx-auto sm:mx-0">
             <Image
-              src={mentor.user.image || "/avatar.png"}
+              src={getAvatarUrl(mentor.user.image)}
               alt={mentor.user.name}
               width={128}
               height={128}
@@ -268,23 +244,17 @@ export default function MentorDetailPage() {
             ) : (
               <div className="space-y-2">
                 {Object.entries(
-                  availability.reduce<Record<string, AvailabilitySlot[]>>(
-                    (acc, s) => {
-                      acc[s.day] = acc[s.day] ? [...acc[s.day], s] : [s];
-                      return acc;
-                    },
-                    {},
-                  ),
+                  availability.reduce<Record<string, AvailabilitySlot[]>>((acc, s) => {
+                    acc[s.day] = acc[s.day] ? [...acc[s.day], s] : [s];
+                    return acc;
+                  }, {}),
                 ).map(([day, slots]) => (
                   <div key={day}>
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       {day}
                     </p>
                     {slots.map((sl) => (
-                      <p
-                        key={sl.id}
-                        className="text-xs text-gray-600 dark:text-gray-300 ml-2"
-                      >
+                      <p key={sl.id} className="text-xs text-gray-600 dark:text-gray-300 ml-2">
                         {sl.startTime} – {sl.endTime}
                         {sl.isBooked && (
                           <span className="ml-1 text-red-400">(Booked)</span>
@@ -306,14 +276,10 @@ export default function MentorDetailPage() {
               Reviews ({reviews.length})
             </h2>
             {reviews.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">
-                No reviews yet.
-              </p>
+              <p className="text-sm text-gray-400 text-center py-8">No reviews yet.</p>
             ) : (
               <div className="space-y-3">
-                {reviews.map((r) => (
-                  <ReviewCard key={r.id} review={r} />
-                ))}
+                {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
               </div>
             )}
           </div>

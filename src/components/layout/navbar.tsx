@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ModeToggle } from "./ModeToggle";
 import { useLogout } from "@/lib/logout";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface MenuItem {
   title: string;
@@ -114,7 +115,7 @@ export function Navbar({ className }: NavbarProps) {
               <>
                 <Link href="/dashboard">
                   <Image
-                    src={user.image || "/avatar.png"}
+                    src={getAvatarUrl(user.image)}
                     alt="profile"
                     width={36}
                     height={36}
@@ -210,7 +211,7 @@ export function Navbar({ className }: NavbarProps) {
                         className="flex items-center gap-3 px-4"
                       >
                         <Image
-                          src={user.image || "/avatar.png"}
+                          src={getAvatarUrl(user.image)}
                           alt="profile"
                           width={40}
                           height={40}

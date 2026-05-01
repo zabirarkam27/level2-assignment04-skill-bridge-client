@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/lib/logout";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface NavItem {
   title: string;
@@ -77,12 +78,8 @@ export function DashboardSidebar() {
       {/* User info */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#611f69]/10 dark:bg-[#c084fc]/20 flex items-center justify-center overflow-hidden">
-            {user?.image ? (
-              <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-5 h-5 text-[#611f69] dark:text-[#c084fc]" />
-            )}
+          <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+            <img src={getAvatarUrl(user?.image)} alt={user?.name ?? "User"} className="w-full h-full object-cover" />
           </div>
           <div className="overflow-hidden">
             <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">{user?.name}</p>
