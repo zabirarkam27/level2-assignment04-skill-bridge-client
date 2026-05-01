@@ -34,46 +34,70 @@ export default function BookPage() {
       router.push("/login");
       return;
     }
+
+    let isMounted = true;
+    const controller = new AbortController();
+
     const fetchData = async () => {
       try {
         const [mRes, aRes] = await Promise.allSettled([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}`, {
+            signal: controller.signal,
+          }),
           fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/mentors/${tutorId}/availability`,
+            { signal: controller.signal },
           ),
         ]);
+
+        if (!isMounted) return;
+
         if (mRes.status === "fulfilled") {
           const d = await mRes.value.json();
-          setMentor(d.data || null);
+          if (isMounted) {
+            setMentor(d.data || null);
+          }
         }
         if (aRes.status === "fulfilled") {
           const d = await aRes.value.json();
-          const DAY_NAMES = [
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ];
-          setAvailability(
-            (Array.isArray(d.data) ? d.data : []).map((s: any) => ({
-              id: s.id,
-              day: DAY_NAMES[s.dayOfWeek] ?? "Unknown",
-              startTime: s.startTime,
-              endTime: s.endTime,
-              isBooked: false,
-            })),
-          );
+          if (isMounted) {
+            const DAY_NAMES = [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ];
+            setAvailability(
+              (Array.isArray(d.data) ? d.data : []).map((s: any) => ({
+                id: s.id,
+                day: DAY_NAMES[s.dayOfWeek] ?? "Unknown",
+                startTime: s.startTime,
+                endTime: s.endTime,
+                isBooked: false,
+              })),
+            );
+          }
         }
       } catch {
-        /* */
+        if (isMounted) {
+          // Handle errors silently for now
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+
     fetchData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, [tutorId, user, router]);
 
   const handleBook = async () => {
@@ -93,6 +117,8 @@ export default function BookPage() {
         body: JSON.stringify({
           tutorId,
           dateTime,
+          ...(subject && { subject }),
+          ...(note && { note }),
         }),
       });
       if (!res.ok) {

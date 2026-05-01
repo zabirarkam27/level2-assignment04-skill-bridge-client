@@ -58,6 +58,7 @@ export interface Review {
   id: string;
   rating: number; // 1–5
   comment: string;
+  isHidden?: boolean;
   createdAt: string;
   tutorId: string;
   studentId: string;

@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "images.filmibeat.com",
+        hostname: "res.cloudinary.com",
       },
     ],
   },

@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSessionContext } from "@/context/SessionContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { User, Save, Plus, X, DollarSign } from "lucide-react";
-import Image from "next/image";
-import { getAvatarUrl } from "@/lib/avatar";
+import ImageUpload from "@/components/ImageUpload";
 
 interface TutorProfile {
   bio: string;
@@ -18,7 +16,6 @@ interface TutorProfile {
 }
 
 export default function TutorProfilePage() {
-  const { user } = useSessionContext();
   const [profile, setProfile] = useState<TutorProfile>({
     bio: "",
     subjects: [],
@@ -117,23 +114,10 @@ export default function TutorProfilePage() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm space-y-5">
-        {/* Avatar preview */}
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden ring-4 ring-[#611f69]/20">
-            <Image src={getAvatarUrl(profile.image)} alt="avatar" width={64} height={64} className="object-cover w-full h-full" />
-          </div>
-          <div className="flex-1">
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Profile Image URL
-            </label>
-            <Input
-              value={profile.image || ""}
-              onChange={(e) => setProfile((p) => ({ ...p, image: e.target.value }))}
-              placeholder="https://..."
-              className="text-sm"
-            />
-          </div>
-        </div>
+        <ImageUpload
+          currentImage={profile.image}
+          onUploadComplete={(url) => setProfile((p) => ({ ...p, image: url }))}
+        />
 
         {/* Bio */}
         <div>
@@ -158,7 +142,9 @@ export default function TutorProfilePage() {
             <Input
               type="number"
               value={profile.price}
-              onChange={(e) => setProfile((p) => ({ ...p, price: Number(e.target.value) }))}
+              onChange={(e) =>
+                setProfile((p) => ({ ...p, price: Number(e.target.value) }))
+              }
               className="pl-9"
               placeholder="500"
               min={0}
@@ -175,7 +161,9 @@ export default function TutorProfilePage() {
             <Input
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSubject())}
+              onKeyDown={(e) =>
+                e.key === "Enter" && (e.preventDefault(), addSubject())
+              }
               placeholder="Add subject (press Enter)"
               className="flex-1 text-sm"
             />
@@ -195,7 +183,12 @@ export default function TutorProfilePage() {
                 className="flex items-center gap-1 px-3 py-1 rounded-full text-xs bg-[#611f69]/10 text-[#611f69] dark:bg-[#c084fc]/20 dark:text-[#e9d5ff]"
               >
                 {s}
-                <button onClick={() => removeSubject(s)} className="ml-1 hover:text-red-500">
+                <button
+                  type="button"
+                  onClick={() => removeSubject(s)}
+                  className="ml-1 hover:text-red-500"
+                  aria-label={`Remove ${s}`}
+                >
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -211,7 +204,13 @@ export default function TutorProfilePage() {
           disabled={saving}
           className="w-full bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe]"
         >
-          {saving ? "Saving..." : <><Save className="w-4 h-4 mr-2" /> Save Profile</>}
+          {saving ? (
+            "Saving..."
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" /> Save Profile
+            </>
+          )}
         </Button>
       </div>
     </div>

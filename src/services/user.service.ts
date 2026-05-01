@@ -15,6 +15,10 @@ export const userService = {
         cache: "no-store",
       });
 
+      if (!res.ok) {
+        return { data: null, error: "Session fetch failed" };
+      }
+
       const session = await res.json();
 
       if (session === null) {

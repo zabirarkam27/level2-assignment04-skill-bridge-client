@@ -48,8 +48,12 @@ export function SignupForm(props: React.ComponentProps<typeof Card>) {
           email: value.email,
           password: value.password,
           name: value.name,
-          role: value.role,
-        } as any);
+          callbacks: {
+            onComplete: () => {
+              // Handle signup completion
+            },
+          },
+        });
 
         if (error) {
           toast.error(error.message, { id: toastId });
@@ -156,7 +160,7 @@ export function SignupForm(props: React.ComponentProps<typeof Card>) {
                       onChange={(e) => field.handleChange(e.target.value)}
                       className="focus-visible:ring-[#611f69] dark:focus-visible:ring-[#c084fc]"
                     />
-                    <FieldDescription>Minimum 8 characters</FieldDescription>
+                    <FieldDescription>Minimum 6 characters</FieldDescription>
                     {invalid && <FieldError errors={field.state.meta.errors} />}
                   </Field>
                 );

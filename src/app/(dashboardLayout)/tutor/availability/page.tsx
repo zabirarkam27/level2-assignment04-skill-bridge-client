@@ -7,7 +7,15 @@ import { toast } from "sonner";
 import { Clock, Plus, Trash2, Save } from "lucide-react";
 import { motion } from "framer-motion";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 function SlotRow({
   slot,
@@ -21,15 +29,21 @@ function SlotRow({
   return (
     <div className="flex items-center gap-3 flex-wrap">
       <select
+        aria-label="Day of week"
+        title="Day of week"
         value={slot.day}
         onChange={(e) => onChange({ day: e.target.value })}
         className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40 dark:focus:ring-[#c084fc]/40 w-36"
       >
-        {DAYS.map((d) => <option key={d}>{d}</option>)}
+        {DAYS.map((d) => (
+          <option key={d}>{d}</option>
+        ))}
       </select>
       <input
         type="time"
         value={slot.startTime}
+        title="Start time"
+        aria-label="Start time"
         onChange={(e) => onChange({ startTime: e.target.value })}
         className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40 dark:focus:ring-[#c084fc]/40 w-32"
       />
@@ -37,11 +51,15 @@ function SlotRow({
       <input
         type="time"
         value={slot.endTime}
+        title="End time"
+        aria-label="End time"
         onChange={(e) => onChange({ endTime: e.target.value })}
         className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#611f69]/40 dark:focus:ring-[#c084fc]/40 w-32"
       />
       <button
         onClick={onRemove}
+        aria-label="Remove slot"
+        title="Remove slot"
         className="p-2 rounded-md text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
       >
         <Trash2 className="w-4 h-4" />
@@ -61,39 +79,64 @@ const DAY_MAP: Record<string, number> = {
 };
 
 const INV_DAY_MAP: Record<number, string> = Object.fromEntries(
-  Object.entries(DAY_MAP).map(([k, v]) => [v, k])
+  Object.entries(DAY_MAP).map(([k, v]) => [v, k]),
 );
 
 export default function TutorAvailabilityPage() {
-  const [slots, setSlots] = useState<Omit<AvailabilitySlot, "id" | "isBooked">[]>([]);
+  const [slots, setSlots] = useState<
+    Omit<AvailabilitySlot, "id" | "isBooked">[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
     const fetchSlots = async () => {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/availability`,
-          { credentials: "include" },
+          {
+            credentials: "include",
+            signal: controller.signal
+          },
         );
+        if (!isMounted) return;
         const data = await res.json();
         const raw = Array.isArray(data.data) ? data.data : [];
-        setSlots(raw.map(({ dayOfWeek, startTime, endTime }: any) => ({ 
-          day: INV_DAY_MAP[dayOfWeek] || "Monday", 
-          startTime, 
-          endTime 
-        })));
+        if (isMounted) {
+          setSlots(
+            raw.map(({ dayOfWeek, startTime, endTime }: any) => ({
+              day: INV_DAY_MAP[dayOfWeek] || "Monday",
+              startTime,
+              endTime,
+            })),
+          );
+        }
       } catch {
-        setSlots([]);
+        if (isMounted) {
+          setSlots([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     fetchSlots();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, []);
 
   const addSlot = () => {
-    setSlots((s) => [...s, { day: "Monday", startTime: "09:00", endTime: "11:00" }]);
+    setSlots((s) => [
+      ...s,
+      { day: "Monday", startTime: "09:00", endTime: "11:00" },
+    ]);
   };
 
   const removeSlot = (i: number) => {
@@ -101,16 +144,18 @@ export default function TutorAvailabilityPage() {
   };
 
   const updateSlot = (i: number, updates: Partial<(typeof slots)[0]>) => {
-    setSlots((s) => s.map((slot, idx) => (idx === i ? { ...slot, ...updates } : slot)));
+    setSlots((s) =>
+      s.map((slot, idx) => (idx === i ? { ...slot, ...updates } : slot)),
+    );
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const formattedSlots = slots.map(s => ({
+      const formattedSlots = slots.map((s) => ({
         dayOfWeek: DAY_MAP[s.day],
         startTime: s.startTime,
-        endTime: s.endTime
+        endTime: s.endTime,
       }));
 
       const res = await fetch(
@@ -147,7 +192,10 @@ export default function TutorAvailabilityPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 bg-gray-100 dark:bg-gray-700 rounded-md animate-pulse" />
+              <div
+                key={i}
+                className="h-10 bg-gray-100 dark:bg-gray-700 rounded-md animate-pulse"
+              />
             ))}
           </div>
         ) : (
@@ -156,7 +204,9 @@ export default function TutorAvailabilityPage() {
               {slots.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <Clock className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                  <p className="text-sm">No slots added yet. Click below to add your availability.</p>
+                  <p className="text-sm">
+                    No slots added yet. Click below to add your availability.
+                  </p>
                 </div>
               ) : (
                 slots.map((slot, i) => (
@@ -189,7 +239,13 @@ export default function TutorAvailabilityPage() {
                 disabled={saving}
                 className="bg-[#611f69] text-white hover:bg-[#4a174f] dark:bg-[#c084fc] dark:text-black dark:hover:bg-[#d8b4fe]"
               >
-                {saving ? "Saving..." : <><Save className="w-4 h-4 mr-2" /> Save</>}
+                {saving ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" /> Save
+                  </>
+                )}
               </Button>
             </div>
           </>

@@ -26,7 +26,7 @@ import { useSession } from "@/hooks/useSession";
 import { useSessionContext } from "@/context/SessionContext";
 
 const formSchema = z.object({
-  email: z.email(),
+  email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -70,11 +70,10 @@ export function LoginForm({
 
   const handleGoogleLogin = async () => {
     try {
-      const data = await authClient.signIn.social({
+      await authClient.signIn.social({
         provider: "google",
         callbackURL: `${process.env.NEXT_PUBLIC_APP_URL}`,
       });
-      console.log(data);
     } catch {
       toast.error("Google login Failed");
     }

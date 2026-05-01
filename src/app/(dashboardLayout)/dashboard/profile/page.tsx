@@ -4,11 +4,9 @@ import { useEffect, useState } from "react";
 import { useSessionContext } from "@/context/SessionContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import Image from "next/image";
-import { User, Save, Camera } from "lucide-react";
-import { getAvatarUrl } from "@/lib/avatar";
+import { User, Save } from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function StudentProfilePage() {
   const { user, refetch } = useSessionContext();
@@ -58,15 +56,7 @@ export default function StudentProfilePage() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm space-y-6">
-        {/* Avatar */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-[#611f69]/20 dark:ring-[#c084fc]/20">
-            <Image src={getAvatarUrl(image)} alt="avatar" fill className="object-cover" />
-          </div>
-          <p className="text-xs text-gray-400 flex items-center gap-1">
-            <Camera className="w-3.5 h-3.5" /> Paste image URL below
-          </p>
-        </div>
+        <ImageUpload currentImage={image} onUploadComplete={(url) => setImage(url)} />
 
         {/* Fields */}
         <div className="space-y-4">
@@ -87,17 +77,6 @@ export default function StudentProfilePage() {
             </label>
             <Input value={user?.email || ""} disabled className="opacity-60" />
             <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Profile Picture URL
-            </label>
-            <Input
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="https://example.com/avatar.jpg"
-            />
           </div>
 
           <div>

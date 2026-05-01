@@ -15,8 +15,7 @@ export function useLogout() {
         }
       );
 
-      console.log("Logout response:", res.status);
-
+      
       if (res.ok) {
         refetch?.();
         router.push("/login"); // ✅ redirect
